@@ -18,7 +18,7 @@ The site and source are public; entered data and uploaded fonts are never sent t
 
 ## Typography and details
 
-Prices use large kronor and small raised öre, or `:-` for whole kronor. Product names render in uppercase. Supplier and manufacturer share the quantity line; regular and comparison prices share the following line. Optional 30-day price and deposit text are omitted together when empty, so the purchase limit moves up.
+Main prices use large kronor and small raised öre, or `:-` for whole kronor. The savings badge uses decimal commas and two equally sized decimal digits, e.g. `29,95` or `30,00`. Product names render in uppercase. Supplier and manufacturer share the quantity line; regular and comparison prices share the following line. Optional 30-day price and deposit text are omitted together when empty, so the purchase limit moves up.
 
 The Excel columns `Leverantör` and `Pant tillkommer` are optional and older templates still work. Deposit accepts ja/nej, true/false, 1/0, or an empty cell (no). Invalid values remain editable and block that row's export until corrected with the checkbox.
 

@@ -1,4 +1,4 @@
-import {calculate,detailLines,priceParts,type Product,type Settings} from './model';
+import {calculate,decimal,detailLines,priceParts,type Product,type Settings} from './model';
 
 export interface PriceMetrics {width:number;ascent:number;descent:number}
 export function priceLayout(amount:number,initialSize:number,maxWidth:number,maxHeight:number,measure:(value:string,size:number)=>PriceMetrics){
@@ -26,7 +26,7 @@ export function render(canvas:HTMLCanvasElement,p:Product,s:Settings):string[]{
  const c=calculate(p);if(c.quantity>1)text(`${c.quantity} för`,700,285,48,360,true,s.priceColor);
  if(c.price===null)text('—',700,356,186,400,true,s.priceColor);else price(c.price,700,c.quantity>1?385:365,c.quantity>1?143:186,400,c.quantity>1?145:180);
  if(p.suffix.trim())text(`/${p.suffix.trim().replace(/^\//,'').toLowerCase()}`,723,490,58,280,true,s.priceColor);
- if(c.saving!==null&&c.saving>0){ctx.fillStyle='#fff';ctx.beginPath();ctx.moveTo(763,110);ctx.lineTo(925,110);ctx.lineTo(925,245);ctx.lineTo(844,293);ctx.lineTo(763,245);ctx.closePath();ctx.fill();text('Spara',844,148,48,155,true,s.priceColor);price(c.saving,844,211,52,148,53);}
+ if(c.saving!==null&&c.saving>0){ctx.fillStyle='#fff';ctx.beginPath();ctx.moveTo(763,110);ctx.lineTo(925,110);ctx.lineTo(925,245);ctx.lineTo(844,293);ctx.lineTo(763,245);ctx.closePath();ctx.fill();text('Spara',844,148,48,155,true,s.priceColor);text(decimal(c.saving),844,211,52,148,true,s.priceColor);}
  const name=(p.name.trim()||'Varans namn').toLocaleUpperCase('sv-SE');ctx.font=`${weight} 72px ${family}`;const words=name.split(/\s+/);const lines:string[]=[];let line='';for(const word of words){const trial=line?`${line} ${word}`:word;if(ctx.measureText(trial).width>870&&line){lines.push(line);line=word;}else line=trial;}if(line)lines.push(line);
  const nameLines=lines.length<=2?lines:[lines[0],lines.slice(1).join(' ')];let y=666;for(const l of nameLines){text(l,500,y,72,880,true,s.textColor,34);y+=69;}
  const details=detailLines(p);
