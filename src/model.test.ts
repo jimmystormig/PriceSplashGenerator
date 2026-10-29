@@ -27,3 +27,11 @@ test('compact centered detail lines omit optional gaps and duplicate names',asyn
  assert.equal(detailLines({...p,lowest:'40'})[2],'30-dgr-pris. 40,00/frp');
  assert.equal(detailLines({...p,supplier:'Grossisten'})[0],'Löfbergs Grossisten 500 g');
 });
+
+test('new and legacy Excel headers distinguish weight unit from price unit',async()=>{
+ const {mapColumns}=await import('./model');
+ for(const headers of [['Varans namn','Pris','Viktenhet','Enhet'],['Varans namn','Pris','Enhet','Prissuffix']]){
+  const [p]=rowsToProducts([['Kaffe','45','g','st']],mapColumns(headers));assert.equal(p.unit,'g');assert.equal(p.suffix,'st');assert.deepEqual(validate(p),[]);
+ }
+ assert.match(validate({...example(),suffix:'kg'}).join(),/Enhet efter priset/);
+});

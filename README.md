@@ -23,3 +23,7 @@ Main prices use large kronor and small raised öre, or `:-` for whole kronor. Th
 The Excel columns `Leverantör` and `Pant tillkommer` are optional and older templates still work. Deposit accepts ja/nej, true/false, 1/0, or an empty cell (no). Invalid values remain editable and block that row's export until corrected with the checkbox.
 
 Uploaded fonts and the selected font are saved immediately in IndexedDB; storage success or failure appears beside the font control. TrueType/OpenType weight metadata is respected, including ICA Rubrik Bold (700). Font files are never committed or hosted with the app. Fonts persist on this browser and origin until browser data or saved work is cleared.
+
+The price-unit dropdown is labeled Enhet and offers st/frp; the weight/volume unit is labeled Viktenhet. New Excel templates use those headers. Older Enhet/Prissuffix templates still map correctly. Existing unsupported price units are retained and flagged for correction.
+
+The splash group is 10% smaller with its center shifted 25 pixels to the right on a 1000-pixel canvas. Main prices are larger within the splash; multiprice labels, amounts, and units use separate vertical areas measured using actual font ink bounds.
