@@ -1,0 +1,10 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {example,calculate,validate,number,money,rowsToProducts,filename} from './model';
+test('reference sample calculates saving and comparison',()=>{const c=calculate(example());assert.equal(c.saving,29.95);assert.equal(c.comparison,100);assert.deepEqual(validate(example()),[]);});
+test('multiprice uses bundle saving and total volume',()=>{const p={...example(),price:'99',regular:'74,95',multi:'2',weight:'500',unit:'ml'};const c=calculate(p);assert.equal(c.saving,50.9);assert.equal(c.comparison,99);assert.equal(c.comparisonUnit,'liter');});
+test('manual zero and comparison overrides are respected',()=>{const c=calculate({...example(),saving:'0',comparison:'12,50',comparisonUnit:'liter'});assert.equal(c.saving,0);assert.equal(c.comparison,12.5);assert.equal(c.comparisonUnit,'liter');});
+test('weight and volume conversions',()=>{for(const [unit,weight]of [['g','1000'],['hg','10'],['kg','1'],['ml','1000'],['cl','100'],['dl','10'],['liter','1']])assert.equal(calculate({...example(),unit,weight}).comparison,45);assert.equal(calculate({...example(),unit:'st'}).comparison,null);});
+test('numbers and validation reject malformed data',()=>{assert.equal(number(' 74,95 '),74.95);assert.equal(number('74.95'),74.95);for(const x of ['-1','Infinity','45abc','1,2,3'])assert.equal(number(x),null);assert.match(validate({...example(),multi:'1.5'}).join(),/Multipris/);assert.match(validate({...example(),limit:'0'}).join(),/Maxköp/);assert.match(validate({...example(),name:'',price:''}).join(),/namn/);});
+test('price formatting rounds before deciding whole-price notation',()=>{assert.equal(money(45),'45:-');assert.equal(money(29.95),'29:95');assert.equal(money(9.999),'10:-');});
+test('100-row mapping preserves invalid data for correction and unique filenames',()=>{const rows=Array.from({length:100},(_,i)=>['Samma vara',i===99?'fel':'45,00']);const products=rowsToProducts(rows,{name:0,price:1});assert.equal(products.length,100);assert.equal(products.filter(p=>!validate(p).length).length,99);assert.equal(new Set(products.map(filename)).size,100);});
