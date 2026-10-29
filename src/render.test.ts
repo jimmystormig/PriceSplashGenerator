@@ -20,4 +20,7 @@ test('renderer uppercases Swedish names without changing the product and uses co
  assert.ok(drawn.some(d=>d.text==='29,95'));
  drawn.length=0;render(canvas,{...p,price:'45,20',saving:'30'},defaults);
  assert.ok(drawn.some(d=>d.text==='30,00'));assert.ok(drawn.some(d=>d.text==='45'));assert.ok(drawn.some(d=>d.text==='20'));assert.ok(!drawn.some(d=>d.text==='45,20'));
+ drawn.length=0;render(canvas,p,{...defaults,font:'ICARubrikBold.ttf',fontWeight:700});
+ for(const detail of ['Ediths Grossisten 450 g','Ord. 74,95/frp Jfr. 100,00/kg','pant tillkommer','Max 2 köp'])assert.equal(drawn.find(d=>d.text===detail)?.font,'400 31px Arial, sans-serif');
+ assert.match(drawn.find(d=>d.text==='ÅL OCH RÄKOR')!.font,/700 .*SplashCustom/);
 });
