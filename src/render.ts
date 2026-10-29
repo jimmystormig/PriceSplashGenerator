@@ -33,7 +33,7 @@ export function render(canvas:HTMLCanvasElement,p:Product,s:Settings):string[]{
  const c=calculate(p);
  if(c.quantity>1)inkText(`${c.quantity} för`,700,265,48,360,38);
  if(c.price===null)text('—',700,400,240,460,true,s.priceColor);else price(c.price,700,c.quantity>1?410:397,c.quantity>1?215:250,priceParts(c.price).kronor.length>=4?400:440,c.quantity>1?180:205);
- if(p.suffix.trim())inkText(`/${p.suffix.trim().replace(/^\//,'').toLowerCase()}`,710,521,58,280,48);
+ if(p.suffix.trim())inkText(`/${p.suffix.trim().replace(/^\//,'').toLowerCase()}`,710,509,58,280,48);
  if(c.saving!==null&&c.saving>0){ctx.fillStyle='#fff';ctx.beginPath();ctx.moveTo(763,110);ctx.lineTo(925,110);ctx.lineTo(925,245);ctx.lineTo(844,293);ctx.lineTo(763,245);ctx.closePath();ctx.fill();text('Spara',844,148,48,155,true,s.priceColor);text(decimal(c.saving),844,211,52,148,true,s.priceColor);}
  ctx.restore();
  const name=(p.name.trim()||'Varans namn').toLocaleUpperCase('sv-SE');ctx.font=`${weight} 72px ${family}`;const words=name.split(/\s+/);const lines:string[]=[];let line='';for(const word of words){const trial=line?`${line} ${word}`:word;if(ctx.measureText(trial).width>870&&line){lines.push(line);line=word;}else line=trial;}if(line)lines.push(line);
