@@ -19,5 +19,5 @@ test('renderer uppercases Swedish names without changing the product and uses co
  assert.deepEqual(render(canvas,p,defaults),[]);assert.ok(drawn.some(d=>d.text==='ÅL OCH RÄKOR'));assert.equal(p.name,'Ål och räkor');assert.ok(drawn.some(d=>d.text==='Ediths Grossisten 450 g'&&d.font.includes('31px')));assert.ok(drawn.some(d=>d.text==='pant tillkommer'));assert.ok(drawn.some(d=>d.text==='Max 2 köp'));
  assert.ok(drawn.some(d=>d.text==='29,95'));
  drawn.length=0;render(canvas,{...p,price:'45,20',saving:'30'},defaults);
- assert.ok(drawn.some(d=>d.text==='30,00'));assert.ok(drawn.some(d=>d.text==='45'));assert.ok(drawn.some(d=>d.text==='20'));assert.ok(!drawn.some(d=>d.text==='45,20')); 
+ assert.ok(drawn.some(d=>d.text==='30,00'));assert.ok(drawn.some(d=>d.text==='45'));assert.ok(drawn.some(d=>d.text==='20'));assert.ok(!drawn.some(d=>d.text==='45,20'));
 });
