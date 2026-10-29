@@ -1,11 +1,11 @@
 export interface Product {
- id:string; name:string; maker:string; weight:string; unit:string; price:string; regular:string;
+ id:string; name:string; maker:string; supplier:string; deposit:boolean; depositError?:string; weight:string; unit:string; price:string; regular:string;
  comparison:string; comparisonUnit:string; suffix:string; multi:string; lowest:string; limit:string; saving:string;
 }
-export interface Settings {burst:string;priceColor:string;textColor:string;background:string;size:number;font:string}
-export interface StoredFont {name:string;data:ArrayBuffer}
-export const defaults:Settings={burst:'#ffe600',priceColor:'#e60012',textColor:'#101010',background:'transparent',size:1000,font:'default'};
-export const blank=():Product=>({id:crypto.randomUUID(),name:'',maker:'',weight:'',unit:'g',price:'',regular:'',comparison:'',comparisonUnit:'kg',suffix:'frp',multi:'',lowest:'',limit:'',saving:''});
+export interface Settings {burst:string;priceColor:string;textColor:string;background:string;size:number;font:string;fontWeight:number}
+export interface StoredFont {name:string;data:ArrayBuffer;weight?:number}
+export const defaults:Settings={burst:'#ffe600',priceColor:'#e60012',textColor:'#101010',background:'transparent',size:1000,font:'default',fontWeight:700};
+export const blank=():Product=>({id:crypto.randomUUID(),name:'',maker:'',supplier:'',deposit:false,weight:'',unit:'g',price:'',regular:'',comparison:'',comparisonUnit:'kg',suffix:'frp',multi:'',lowest:'',limit:'',saving:''});
 export const example=():Product=>({...blank(),name:'Janssons frestelse',maker:'Ediths',weight:'450',price:'45',regular:'74,95'});
 export function number(value:string):number|null {if(!value.trim())return null; const v=value.trim().replace(/\s/g,'').replace(',','.'); return /^\d+(\.\d+)?$/.test(v)&&Number.isFinite(Number(v))?Number(v):null;}
 export function money(n:number):string {const cents=Math.round((n+Number.EPSILON)*100);return cents%100===0?`${cents/100}:-`:`${Math.floor(cents/100)}:${String(cents%100).padStart(2,'0')}`;}
@@ -19,7 +19,7 @@ export function calculate(p:Product){
  return {saving:p.saving.trim()?number(p.saving):autoSaving,comparison:p.comparison.trim()?number(p.comparison):autoComparison,comparisonUnit:p.comparison.trim()?p.comparisonUnit:conversion?.unit??p.comparisonUnit,quantity,price,autoSaving,autoComparison};
 }
 export function validate(p:Product):string[]{
- const errors:string[]=[];if(!p.name.trim())errors.push('Varans namn saknas.');if(number(p.price)===null)errors.push('Pris måste vara ett positivt tal eller noll.');
+ const errors:string[]=[];if(p.depositError)errors.push(p.depositError);if(!p.name.trim())errors.push('Varans namn saknas.');if(number(p.price)===null)errors.push('Pris måste vara ett positivt tal eller noll.');
  for(const [key,label] of [['weight','Vikt/volym'],['regular','Ordinarie pris'],['comparison','Jämförpris'],['lowest','30-dagarspris'],['saving','Besparing']] as const)if(p[key].trim()&&number(p[key])===null)errors.push(`${label} måste vara ett positivt tal eller noll.`);
  if(!['g','hg','kg','ml','cl','dl','liter','st'].includes(p.unit))errors.push('Enhet måste vara g, hg, kg, ml, cl, dl, liter eller st.');
  if(p.comparison.trim()&&!['kg','liter'].includes(p.comparisonUnit))errors.push('Jämförprisenhet måste vara kg eller liter.');
@@ -29,5 +29,29 @@ export function validate(p:Product):string[]{
  return errors;
 }
 export function filename(p:Product,index:number):string{return `${String(index+1).padStart(3,'0')}-${p.name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'produkt'}.png`;}
-export const fields:[keyof Omit<Product,'id'>,string][]=[['name','Varans namn'],['maker','Tillverkare'],['weight','Varans vikt'],['unit','Enhet'],['price','Pris'],['regular','Ordinarie pris'],['comparison','Jämförpris'],['comparisonUnit','Jämförprisenhet'],['suffix','Prissuffix'],['multi','Multipris antal'],['lowest','30-dagarspris'],['limit','Maxköp'],['saving','Besparing']];
-export function rowsToProducts(rows:unknown[][],mapping:Record<string,number>):Product[]{return rows.filter(row=>row.some(v=>v!==undefined&&v!==null&&String(v).trim())).map(row=>{const p=blank();for(const [key]of fields){const i=mapping[key];if(i!==undefined&&i>=0&&row[i]!==undefined&&row[i]!==null)p[key]=String(row[i]).trim();}p.unit=p.unit.toLowerCase();if(p.unit==='l')p.unit='liter';p.comparisonUnit=p.comparisonUnit.toLowerCase();if(p.comparisonUnit==='l')p.comparisonUnit='liter';return p;});}
+export const fields:[keyof Omit<Product,'id'|'depositError'>,string][]=[['name','Varans namn'],['maker','Tillverkare'],['supplier','Leverantör'],['deposit','Pant tillkommer'],['weight','Varans vikt'],['unit','Enhet'],['price','Pris'],['regular','Ordinarie pris'],['comparison','Jämförpris'],['comparisonUnit','Jämförprisenhet'],['suffix','Prissuffix'],['multi','Multipris antal'],['lowest','30-dagarspris'],['limit','Maxköp'],['saving','Besparing']];
+export function rowsToProducts(rows:unknown[][],mapping:Record<string,number>):Product[]{return rows.filter(row=>row.some(v=>v!==undefined&&v!==null&&String(v).trim())).map(row=>{const p=blank();for(const [key]of fields){const i=mapping[key];if(i!==undefined&&i>=0&&row[i]!==undefined&&row[i]!==null){if(key==='deposit'){const result=parseDeposit(row[i]);p.deposit=result.value;p.depositError=result.error;}else p[key]=String(row[i]).trim();}}p.unit=p.unit.toLowerCase();if(p.unit==='l')p.unit='liter';p.comparisonUnit=p.comparisonUnit.toLowerCase();if(p.comparisonUnit==='l')p.comparisonUnit='liter';return p;});}
+
+export function parseDeposit(raw:unknown):{value:boolean;error?:string}{
+ const value=String(raw??'').trim().toLocaleLowerCase('sv-SE');
+ if(['ja','true','1'].includes(value))return {value:true};
+ if(['','nej','false','0'].includes(value))return {value:false};
+ return {value:false,error:`Pant tillkommer: ”${String(raw)}” är ogiltigt. Ange ja/nej, true/false eller 1/0.`};
+}
+export function hydrateProduct(saved:Partial<Product>):Product{return {...blank(),...saved,supplier:saved.supplier??'',deposit:saved.deposit??false};}
+export function priceParts(amount:number){const cents=Math.round((amount+Number.EPSILON)*100);return {kronor:String(Math.floor(cents/100)),ore:cents%100?String(cents%100).padStart(2,'0'):null};}
+export function detailLines(p:Product):string[]{
+ const c=calculate(p);const suffix=p.suffix.trim().replace(/^\//,'')||'st';
+ const names=[...new Map([p.maker,p.supplier].map(v=>v.trim()).filter(Boolean).map(v=>[v.toLocaleLowerCase('sv-SE'),v])).values()];
+ return [
+ [...names,p.weight.trim()?`${p.weight.trim()} ${p.unit}`:''].filter(Boolean).join(' '),
+ [p.regular.trim()?`Ord. ${decimal(number(p.regular)??0)}/${suffix}`:'',c.comparison!==null?`Jfr. ${decimal(c.comparison)}/${c.comparisonUnit}`:''].filter(Boolean).join(' '),
+ [p.lowest.trim()?`30-dgr-pris. ${decimal(number(p.lowest)??0)}/${suffix}`:'',p.deposit?'pant tillkommer':''].filter(Boolean).join(' / '),
+ p.limit.trim()?`Max ${p.limit.trim()} köp`:''
+ ].filter(Boolean);
+}
+// TrueType/OpenType OS/2 usWeightClass, with a consistent bold fallback for webfonts.
+export function fontWeight(data:ArrayBuffer):number{
+ try{const view=new DataView(data);const count=view.getUint16(4);for(let i=0;i<count;i++){const start=12+i*16;if(view.getUint32(start)===0x4f532f32){const offset=view.getUint32(start+8);const weight=view.getUint16(offset+4);return weight>=1&&weight<=1000?weight:700;}}}catch{/* Compressed webfonts are validated by FontFace. */}
+ return 700;
+}

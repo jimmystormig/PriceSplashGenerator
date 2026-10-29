@@ -8,3 +8,22 @@ test('weight and volume conversions',()=>{for(const [unit,weight]of [['g','1000'
 test('numbers and validation reject malformed data',()=>{assert.equal(number(' 74,95 '),74.95);assert.equal(number('74.95'),74.95);for(const x of ['-1','Infinity','45abc','1,2,3'])assert.equal(number(x),null);assert.match(validate({...example(),multi:'1.5'}).join(),/Multipris/);assert.match(validate({...example(),limit:'0'}).join(),/Maxköp/);assert.match(validate({...example(),name:'',price:''}).join(),/namn/);});
 test('price formatting rounds before deciding whole-price notation',()=>{assert.equal(money(45),'45:-');assert.equal(money(29.95),'29:95');assert.equal(money(9.999),'10:-');});
 test('100-row mapping preserves invalid data for correction and unique filenames',()=>{const rows=Array.from({length:100},(_,i)=>['Samma vara',i===99?'fel':'45,00']);const products=rowsToProducts(rows,{name:0,price:1});assert.equal(products.length,100);assert.equal(products.filter(p=>!validate(p).length).length,99);assert.equal(new Set(products.map(filename)).size,100);});
+
+test('supplier and deposit migrate without changing existing data',async()=>{
+ const {hydrateProduct}=await import('./model');const old=example();delete (old as Partial<typeof old>).supplier;delete (old as Partial<typeof old>).deposit;
+ const migrated=hydrateProduct(old);assert.equal(migrated.supplier,'');assert.equal(migrated.deposit,false);assert.equal(migrated.id,old.id);assert.equal(migrated.maker,'Ediths');assert.equal(migrated.price,'45');
+});
+test('deposit accepts spreadsheet boolean forms and retains invalid rows',()=>{
+ for(const raw of ['ja','JA',true,'true',1]){const [p]=rowsToProducts([['Kaffe','20',raw,'Leverantör']],{name:0,price:1,deposit:2,supplier:3});assert.equal(p.deposit,true);assert.equal(p.supplier,'Leverantör');assert.deepEqual(validate(p),[]);}
+ for(const raw of ['nej',false,'false',0,''])assert.equal(rowsToProducts([['Kaffe','20',raw]],{name:0,price:1,deposit:2})[0].deposit,false);
+ const [invalid]=rowsToProducts([['Kaffe','20','kanske']],{name:0,price:1,deposit:2});assert.match(validate(invalid).join(),/Pant tillkommer.*kanske/);
+ delete invalid.depositError;invalid.deposit=true;assert.deepEqual(validate(invalid),[]);
+});
+test('compact centered detail lines omit optional gaps and duplicate names',async()=>{
+ const {detailLines}=await import('./model');const p={...example(),maker:'Löfbergs',supplier:'Löfbergs',weight:'500',price:'20',regular:'45',comparison:'40',limit:'2'};
+ assert.deepEqual(detailLines(p),['Löfbergs 500 g','Ord. 45,00/frp Jfr. 40,00/kg','Max 2 köp']);
+ assert.equal(detailLines({...p,lowest:'40',deposit:true})[2],'30-dgr-pris. 40,00/frp / pant tillkommer');
+ assert.equal(detailLines({...p,deposit:true})[2],'pant tillkommer');
+ assert.equal(detailLines({...p,lowest:'40'})[2],'30-dgr-pris. 40,00/frp');
+ assert.equal(detailLines({...p,supplier:'Grossisten'})[0],'Löfbergs Grossisten 500 g');
+});
