@@ -32,10 +32,10 @@ export function render(canvas:HTMLCanvasElement,p:Product,s:Settings):string[]{
   ctx.save();ctx.textAlign='center';ctx.textBaseline='alphabetic';ctx.fillStyle=s.priceColor;ctx.fillText(value,x,top+metrics!.actualBoundingBoxAscent);ctx.restore();
  }
  const c=calculate(p);
- if(c.quantity>1)inkText(`${c.quantity} för`,700,208,48,360,38);
+ if(c.quantity>1)inkText(`${c.quantity} för`,680,240,72,360,54);
  // Match the reference: price above the burst centre, with the unit directly below.
- if(c.price===null)text('—',700,338,240,460,true,s.priceColor);else price(c.price,700,c.quantity>1?353:338,c.quantity>1?215:250,priceParts(c.price).kronor.length>=4?400:440,c.quantity>1?180:205);
- if(p.suffix.trim())inkText(`/${p.suffix.trim().replace(/^\//,'').toLowerCase()}`,735,465,64,280,52);
+ if(c.price===null)text('—',700,338,240,460,true,s.priceColor);else price(c.price,700,c.quantity>1?388:338,c.quantity>1?215:250,priceParts(c.price).kronor.length>=4?400:440,c.quantity>1?180:205);
+ if(p.suffix.trim())inkText(`/${p.suffix.trim().replace(/^\//,'').toLowerCase()}`,735,c.quantity>1?486:465,64,280,52);
  if(c.saving!==null&&c.saving>0){ctx.fillStyle='#fff';ctx.beginPath();ctx.moveTo(763,110);ctx.lineTo(925,110);ctx.lineTo(925,245);ctx.lineTo(844,293);ctx.lineTo(763,245);ctx.closePath();ctx.fill();text('Spara',844,148,48,155,true,s.priceColor);text(decimal(c.saving),844,211,52,148,true,s.priceColor);}
  ctx.restore();
  const name=(p.name.trim()||'Varans namn').toLocaleUpperCase('sv-SE');ctx.font=`${weight} 72px ${family}`;const words=name.split(/\s+/);const lines:string[]=[];let line='';for(const word of words){const trial=line?`${line} ${word}`:word;if(ctx.measureText(trial).width>870&&line){lines.push(line);line=word;}else line=trial;}if(line)lines.push(line);
