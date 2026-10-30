@@ -1,6 +1,6 @@
 import {test} from 'node:test';import assert from 'node:assert/strict';
 import {priceLayout,render} from './render';import {defaults,example,priceParts} from './model';
-test('price groups fit both dimensions and preserve superscript proportions',()=>{
+test('price groups fit both dimensions and preserve fractional digit proportions',()=>{
  // Exercise narrow and wide font metrics independently of the browser font engine.
  for(const widthFactor of [.55,.9])for(const amount of [5,5.2,45.2,99.95,100.5,9999.95])for(const [initial,width,height]of [[250,440,205],[215,440,180],[250,400,205],[52,148,53]]){
  const layout=priceLayout(amount,initial,width,height,(value,size)=>({width:value.length*size*widthFactor,ascent:size*.8,descent:size*.15}));
@@ -22,12 +22,13 @@ test('renderer uppercases Swedish names without changing the product and uses co
  assert.ok(drawn.some(d=>d.text==='30,00'));assert.ok(drawn.some(d=>d.text==='45'));assert.ok(drawn.some(d=>d.text==='20'));assert.ok(!drawn.some(d=>d.text==='45,20'));
 });
 
-test('multiprice ink bounds leave space above the price and before the unit',()=>{
- for(const font of ['default','ICARubrikBold.ttf'])for(const amount of ['77','99,95','4500']){
+test('price ink bounds centre öre and leave space for the multiprice label and unit',()=>{
+ for(const font of ['default','ICARubrikBold.ttf'])for(const multi of ['', '2'])for(const amount of ['77','45,50','99,95','4500']){
   const drawn:{text:string;top:number;bottom:number}[]=[];
   const context={font:'',measureText(value:string){const size=Number(this.font.match(/([\d.]+)px/)?.[1]??30);return {width:value.length*size*.55,actualBoundingBoxAscent:size*.83,actualBoundingBoxDescent:size*.12,actualBoundingBoxLeft:0,actualBoundingBoxRight:value.length*size*.55};},fillText(text:string,_x:number,y:number){const m=this.measureText(text);drawn.push({text,top:y-m.actualBoundingBoxAscent,bottom:y+m.actualBoundingBoxDescent});},translate(){},scale(){},clearRect(){},fillRect(){},save(){},restore(){},beginPath(){},moveTo(){},lineTo(){},closePath(){},fill(){}};
-  render({getContext:()=>context}as unknown as HTMLCanvasElement,{...example(),multi:'2',price:amount},{...defaults,font});
+  render({getContext:()=>context}as unknown as HTMLCanvasElement,{...example(),multi,price:amount},{...defaults,font});
   const label=drawn.find(d=>d.text==='2 för')!;const main=drawn.find(d=>d.text===priceParts(Number(amount.replace(',','.'))).kronor+(amount.includes(',')?'':':-'))!;const unit=drawn.find(d=>d.text==='/frp')!;
-  assert.ok(main.top-label.bottom>=16);assert.ok(unit.top-main.bottom>=8);
+  if(multi)assert.ok(main.top-label.bottom>=16);assert.ok(unit.top-main.bottom>=8);
+  if(amount.includes(',')){const ore=drawn.find(d=>d.text===amount.split(',')[1])!;assert.ok(Math.abs((ore.top+ore.bottom)/2-(main.top+main.bottom)/2)<1e-10);assert.ok(ore.top>293,'Öre must clear the bottom of the saving badge');}
  }
 });
