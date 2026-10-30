@@ -11,7 +11,7 @@ test('100-row mapping preserves invalid data for correction and unique filenames
 
 test('supplier and deposit migrate without changing existing data',async()=>{
  const {hydrateProduct}=await import('./model');const old=example();delete (old as Partial<typeof old>).supplier;delete (old as Partial<typeof old>).deposit;
- const migrated=hydrateProduct(old);assert.equal(migrated.supplier,'');assert.equal(migrated.deposit,false);assert.equal(migrated.id,old.id);assert.equal(migrated.maker,'Ediths');assert.equal(migrated.price,'45');
+ const migrated=hydrateProduct(old);assert.equal(migrated.supplier,'');assert.equal(migrated.deposit,false);assert.equal(migrated.id,old.id);assert.equal('maker' in migrated,false);assert.equal(migrated.price,'45');
 });
 test('deposit accepts spreadsheet boolean forms and retains invalid rows',()=>{
  for(const raw of ['ja','JA',true,'true',1]){const [p]=rowsToProducts([['Kaffe','20',raw,'Leverantör']],{name:0,price:1,deposit:2,supplier:3});assert.equal(p.deposit,true);assert.equal(p.supplier,'Leverantör');assert.deepEqual(validate(p),[]);}
@@ -19,13 +19,13 @@ test('deposit accepts spreadsheet boolean forms and retains invalid rows',()=>{
  const [invalid]=rowsToProducts([['Kaffe','20','kanske']],{name:0,price:1,deposit:2});assert.match(validate(invalid).join(),/Pant tillkommer.*kanske/);
  delete invalid.depositError;invalid.deposit=true;assert.deepEqual(validate(invalid),[]);
 });
-test('compact centered detail lines omit optional gaps and duplicate names',async()=>{
- const {detailLines}=await import('./model');const p={...example(),maker:'Löfbergs',supplier:'Löfbergs',weight:'500',price:'20',regular:'45',comparison:'40',limit:'2'};
+test('compact centered detail lines show supplier and weight and omit optional gaps',async()=>{
+ const {detailLines}=await import('./model');const p={...example(),supplier:'Löfbergs',weight:'500',price:'20',regular:'45',comparison:'40',limit:'2'};
  assert.deepEqual(detailLines(p),['Löfbergs 500 g','Ord. 45,00/frp Jfr. 40,00/kg','Max 2 köp']);
  assert.equal(detailLines({...p,lowest:'40',deposit:true})[2],'30-dgr-pris. 40,00/frp / pant tillkommer');
  assert.equal(detailLines({...p,deposit:true})[2],'pant tillkommer');
  assert.equal(detailLines({...p,lowest:'40'})[2],'30-dgr-pris. 40,00/frp');
- assert.equal(detailLines({...p,supplier:'Grossisten'})[0],'Löfbergs Grossisten 500 g');
+ assert.equal(detailLines({...p,supplier:'Grossisten'})[0],'Grossisten 500 g');
 });
 
 test('new and legacy Excel headers distinguish weight unit from price unit',async()=>{
@@ -34,4 +34,21 @@ test('new and legacy Excel headers distinguish weight unit from price unit',asyn
   const [p]=rowsToProducts([['Kaffe','45','g','st']],mapColumns(headers));assert.equal(p.unit,'g');assert.equal(p.suffix,'st');assert.deepEqual(validate(p),[]);
  }
  assert.match(validate({...example(),suffix:'kg'}).join(),/Enhet efter priset/);
+});
+
+test('saved manufacturer is discarded while all other product data survives',async()=>{
+ const {hydrateProduct,detailLines}=await import('./model');
+ const product={...example(),supplier:'Grossisten',deposit:true};
+ const migrated=hydrateProduct({...product,maker:'Gammal tillverkare'});
+ assert.deepEqual(migrated,product);assert.equal('maker' in migrated,false);
+ assert.equal(detailLines(migrated)[0],'Grossisten 450 g');
+ assert.equal(detailLines(hydrateProduct({...example(),maker:'Gammal tillverkare'}))[0],'450 g');
+});
+test('Excel fields omit manufacturer and legacy manufacturer columns are ignored',async()=>{
+ const {fields,mapColumns}=await import('./model');
+ assert.ok(!fields.some(([key,label])=>String(key)==='maker'||label==='Tillverkare'));
+ const mapping=mapColumns(['Varans namn','Tillverkare','Pris','Leverantör']);
+ assert.equal('maker' in mapping,false);
+ const [p]=rowsToProducts([['Kaffe','Gammal tillverkare','20','Grossisten']],{...mapping,maker:1});
+ assert.equal('maker' in p,false);assert.equal(p.supplier,'Grossisten');assert.equal(p.price,'20');assert.deepEqual(validate(p),[]);
 });
