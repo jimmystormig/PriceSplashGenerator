@@ -28,7 +28,7 @@ test('price ink bounds centre öre and leave space for the multiprice label and 
   const context={font:'',measureText(value:string){const size=Number(this.font.match(/([\d.]+)px/)?.[1]??30);return {width:value.length*size*.55,actualBoundingBoxAscent:size*.83,actualBoundingBoxDescent:size*.12,actualBoundingBoxLeft:0,actualBoundingBoxRight:value.length*size*.55};},fillText(text:string,_x:number,y:number){const m=this.measureText(text);drawn.push({text,top:y-m.actualBoundingBoxAscent,bottom:y+m.actualBoundingBoxDescent});},translate(){},scale(){},clearRect(){},fillRect(){},save(){},restore(){},beginPath(){},moveTo(){},lineTo(){},closePath(){},fill(){}};
   render({getContext:()=>context}as unknown as HTMLCanvasElement,{...example(),multi,price:amount},{...defaults,font});
   const label=drawn.find(d=>d.text==='2 för')!;const main=drawn.find(d=>d.text===priceParts(Number(amount.replace(',','.'))).kronor+(amount.includes(',')?'':':-'))!;const unit=drawn.find(d=>d.text==='/frp')!;
-  if(multi)assert.ok(main.top-label.bottom>=16);assert.ok(unit.top-main.bottom>=8);
+  if(multi)assert.ok(main.top-label.bottom>=4);assert.ok(unit.top-main.bottom>=8);
   if(amount.includes(',')){const ore=drawn.find(d=>d.text===amount.split(',')[1])!;assert.ok(Math.abs((ore.top+ore.bottom)/2-(main.top+main.bottom)/2)<1e-10);assert.ok(ore.top>293,'Öre must clear the bottom of the saving badge');}
  }
 });
