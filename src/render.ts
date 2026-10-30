@@ -22,7 +22,8 @@ export function render(canvas:HTMLCanvasElement,p:Product,s:Settings):string[]{
   const measure=(value:string,fontSize:number)=>{ctx.font=`${weight} ${fontSize}px ${family}`;const m=ctx.measureText(value);return {width:Math.max(m.width,m.actualBoundingBoxLeft+m.actualBoundingBoxRight),ascent:m.actualBoundingBoxAscent,descent:m.actualBoundingBoxDescent};};
   const layout=priceLayout(amount,size,width,height,measure);const left=x-layout.width/2,top=y-layout.height/2;
   ctx.save();ctx.fillStyle=s.priceColor;ctx.textAlign='left';ctx.textBaseline='alphabetic';ctx.font=`${weight} ${layout.size}px ${family}`;ctx.fillText(layout.main,left,top+layout.big.ascent);
-  if(layout.ore){ctx.font=`${weight} ${layout.smallSize}px ${family}`;ctx.fillText(layout.ore,left+layout.big.width+layout.gap,top+layout.small.ascent);}
+  // Align the visible centres, including descenders, for every font.
+  if(layout.ore){const smallTop=top+(layout.big.ascent+layout.big.descent-layout.small.ascent-layout.small.descent)/2;ctx.font=`${weight} ${layout.smallSize}px ${family}`;ctx.fillText(layout.ore,left+layout.big.width+layout.gap,smallTop+layout.small.ascent);}
   ctx.restore();
  }
  // Use actual ink metrics for the offer label; middle baselines vary between fonts.
