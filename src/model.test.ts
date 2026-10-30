@@ -28,12 +28,23 @@ test('compact centered detail lines show supplier and weight and omit optional g
  assert.equal(detailLines({...p,supplier:'Grossisten'})[0],'Grossisten 500 g');
 });
 
-test('new and legacy Excel headers distinguish weight unit from price unit',async()=>{
+test('Excel headers map weight and price units independently',async()=>{
  const {mapColumns}=await import('./model');
- for(const headers of [['Varans namn','Pris','Viktenhet','Enhet'],['Varans namn','Pris','Enhet','Prissuffix']]){
-  const [p]=rowsToProducts([['Kaffe','45','g','st']],mapColumns(headers));assert.equal(p.unit,'g');assert.equal(p.suffix,'st');assert.deepEqual(validate(p),[]);
- }
- assert.match(validate({...example(),suffix:'kg'}).join(),/Enhet efter priset/);
+ const [p]=rowsToProducts([['Kaffe','45','g','st']],mapColumns(['Varans namn','Pris','Viktenhet','Enhet']));
+ assert.equal(p.unit,'g');assert.equal(p.suffix,'st');assert.deepEqual(validate(p),[]);
+ for(const suffix of ['frp','st','kg','hg'])assert.deepEqual(validate({...example(),suffix}),[]);
+ assert.match(validate({...example(),suffix:'fel'}).join(),/Enhet efter priset/);
+ const old=mapColumns(['Enhet','Prissuffix','30-dagarspris']);
+ assert.equal(old.unit,-1);assert.equal(old.suffix,0);assert.equal(old.lowest,-1);
+});
+
+test('EAN survives import, stored-data hydration and duplication as text',async()=>{
+ const {mapColumns,hydrateProduct}=await import('./model');
+ const [p]=rowsToProducts([['0012345678901','Kaffe','45']],mapColumns(['EAN','Varans namn','Pris']));
+ assert.equal(p.ean,'0012345678901');assert.deepEqual(validate(p),[]);
+ const restored=hydrateProduct(structuredClone(p));assert.equal(restored.ean,p.ean);
+ const duplicate={...restored,id:crypto.randomUUID()};assert.equal(duplicate.ean,p.ean);assert.notEqual(duplicate.id,p.id);
+ const {ean:omitted,...old}=p;assert.equal(hydrateProduct(old).ean,'');
 });
 
 test('saved manufacturer is discarded while all other product data survives',async()=>{

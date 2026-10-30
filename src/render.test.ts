@@ -15,9 +15,9 @@ test('single-digit prices start fifteen percent larger when space permits',()=>{
 });
 test('renderer uppercases Swedish names without changing the product and uses compact rows',()=>{
  const drawn:{text:string;font:string}[]=[];const context={font:'',measureText(value:string){const size=Number(this.font.match(/([\d.]+)px/)?.[1]??30);return {width:value.length*size*.5,actualBoundingBoxAscent:size*.7,actualBoundingBoxDescent:size*.1,actualBoundingBoxLeft:0,actualBoundingBoxRight:value.length*size*.5};},fillText(text:string){drawn.push({text,font:this.font});},translate(){},scale(){},clearRect(){},fillRect(){},save(){},restore(){},beginPath(){},moveTo(){},lineTo(){},closePath(){},fill(){}};
- const p={...example(),name:'Ål och räkor',supplier:'Grossisten',deposit:true,limit:'2'};const canvas={getContext:()=>context}as unknown as HTMLCanvasElement;
+ const p={...example(),ean:'0012345678901',name:'Ål och räkor',supplier:'Grossisten',deposit:true,limit:'2'};const canvas={getContext:()=>context}as unknown as HTMLCanvasElement;
  assert.deepEqual(render(canvas,p,defaults),[]);assert.ok(drawn.some(d=>d.text==='ÅL OCH RÄKOR'));assert.equal(p.name,'Ål och räkor');assert.ok(drawn.some(d=>d.text==='Grossisten 450 g'&&d.font.includes('31px')));assert.ok(drawn.some(d=>d.text==='pant tillkommer'));assert.ok(drawn.some(d=>d.text==='Max 2 köp'));
- assert.ok(drawn.some(d=>d.text==='29,95'));
+ assert.ok(drawn.some(d=>d.text==='29,95'));assert.ok(!drawn.some(d=>d.text.includes(p.ean)));
  drawn.length=0;render(canvas,{...p,price:'45,20',saving:'30'},defaults);
  assert.ok(drawn.some(d=>d.text==='30,00'));assert.ok(drawn.some(d=>d.text==='45'));assert.ok(drawn.some(d=>d.text==='20'));assert.ok(!drawn.some(d=>d.text==='45,20'));
 });
