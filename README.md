@@ -25,6 +25,8 @@ Before submitting changes, run `npm test`, `npm run build`, and `npm audit`. Pul
 
 Download the template in the app. The first worksheet is imported, with headers on row 1 and one product per row. Map columns before import. Blank comparison and saving fields calculate automatically. Multiprice quantity is the number of packages; price is the bundle total, regular price and weight refer to one package. Invalid rows stay editable and are excluded from exports. Maximum import: 5,000 rows / 20 MB. Font uploads: up to 15 MB.
 
+Template columns, in order: EAN, Varans namn, Leverantör, Varans vikt, Viktenhet, Enhet, Multipris antal, Maxköp, Pris, Ordinarie pris, Jämförpris, Jämförprisenhet, 30-dagars pris, Besparing, Pant tillkommer.
+
 ## Deployment
 
 GitHub Actions builds and publishes `dist` to GitHub Pages on pushes to `main` in the upstream repository. Repository Settings → Pages must use **GitHub Actions** as the build source. Deployment derives Vite's base path from Pages metadata, including renamed repositories and custom domains. Local builds default to `/PriceSplashGenerator/`; for another host, use `npm run build -- --base=/your-path/` (or `--base=/` for a root deployment).
@@ -45,10 +47,10 @@ The site and source are public; entered data and uploaded fonts are never sent t
 
 Main prices use large kronor and small raised öre, or `:-` for whole kronor. The savings badge uses decimal commas and two equally sized decimal digits, e.g. `29,95` or `30,00`. Product names render in uppercase. Supplier shares the quantity line; regular and comparison prices share the following line. Optional 30-day price and deposit text are omitted together when empty, so the purchase limit moves up.
 
-The Excel columns `Leverantör` and `Pant tillkommer` are optional and older templates still work. Deposit accepts ja/nej, true/false, 1/0, or an empty cell (no). Invalid values remain editable and block that row's export until corrected with the checkbox.
+Download a fresh template when updating the app; older column layouts are not supported automatically. `EAN` is an optional text reference, stored with the product and omitted from previews and exported images. The template formats EAN cells as text to preserve leading zeroes. `Pant tillkommer` offers a ja/nej dropdown, with nej in the example row and blank cells treated as no. Deposit accepts ja/nej, true/false, 1/0, or an empty cell (no). Invalid values remain editable and block that row's export until corrected with the checkbox.
 
 Uploaded fonts and the selected font are saved immediately in IndexedDB; storage success or failure appears beside the font control. TrueType/OpenType weight metadata is respected, including ICA Rubrik Bold (700). Font files are never committed or hosted with the app. Fonts persist on this browser and origin until browser data or saved work is cleared.
 
-The price-unit dropdown is labeled Enhet and offers st/frp; the weight/volume unit is labeled Viktenhet. New Excel templates use those headers. Older Enhet/Prissuffix templates still map correctly. Existing unsupported price units are retained and flagged for correction.
+The price-unit dropdown is labeled Enhet and offers frp/st/kg/hg in the app and Excel template, with frp as the default; the weight/volume unit is labeled Viktenhet. Excel dropdowns and EAN text formatting cover rows 2–5001. Existing unsupported price units are retained and flagged for correction.
 
 The splash group is 10% smaller with its center shifted 25 pixels to the right on a 1000-pixel canvas. Main prices are larger within the splash; multiprice labels, amounts, and units use separate vertical areas measured using actual font ink bounds.
