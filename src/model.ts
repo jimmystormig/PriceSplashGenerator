@@ -51,6 +51,13 @@ export function detailLines(p:Product):string[]{
  p.limit.trim()?`Max ${p.limit.trim()} köp`:''
  ].filter(Boolean);
 }
+// Check the file contents before handing them to the browser's font sanitizer.
+export function validateFontData(data:ArrayBuffer):void{
+ const signature=data.byteLength>=4?new DataView(data).getUint32(0):null;
+ if(signature===0x00051607)throw Error('Filen är en Mac-metadatafil, inte ett typsnitt. Välj den riktiga typsnittsfilen utan ._ i början av filnamnet och utanför mappen __MACOSX.');
+ if(signature===null||![0x4f54544f,0x00010000,0x74727565,0x774f4646,0x774f4632].includes(signature))throw Error('Filen innehåller inte ett typsnitt i OTF-, TTF-, WOFF- eller WOFF2-format. Välj den ursprungliga typsnittsfilen.');
+ // FontFace.load() still validates the complete font, including its tables.
+}
 // TrueType/OpenType OS/2 usWeightClass, with a consistent bold fallback for webfonts.
 export function fontWeight(data:ArrayBuffer):number{
  try{const view=new DataView(data);const count=view.getUint16(4);for(let i=0;i<count;i++){const start=12+i*16;if(view.getUint32(start)===0x4f532f32){const offset=view.getUint32(start+8);const weight=view.getUint16(offset+4);return weight>=1&&weight<=1000?weight:700;}}}catch{/* Compressed webfonts are validated by FontFace. */}
