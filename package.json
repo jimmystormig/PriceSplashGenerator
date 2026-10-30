@@ -1,1 +1,35 @@
-{"name":"price-splash-generator","version":"1.0.0","private":true,"type":"module","scripts":{"dev":"vite --host 127.0.0.1","build":"tsc --noEmit && vite build","test":"tsx --test src/*.test.ts"},"dependencies":{"idb-keyval":"^6.2.2","jszip":"^3.10.1","xlsx":"https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"},"devDependencies":{"@types/node":"^24.0.0","tsx":"^4.20.0","typescript":"^5.9.0","vite":"^7.1.0"}}
+{
+  "name": "price-splash-generator",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc --noEmit && vite build",
+    "test": "tsx --test src/*.test.ts",
+    "notices": "node scripts/generate-third-party-notices.mjs"
+  },
+  "dependencies": {
+    "idb-keyval": "^6.2.2",
+    "jszip": "^3.10.1",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0",
+    "vite": "^7.1.0"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jimmystormig/PriceSplashGenerator.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jimmystormig/PriceSplashGenerator/issues"
+  },
+  "homepage": "https://jimmystormig.github.io/PriceSplashGenerator/"
+}

@@ -1,0 +1,16 @@
+name: Feature request
+description: Suggest an improvement. Requests are reviewed best effort.
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or use case
+      description: Explain who needs this and why. Use no confidential data.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Suggested behavior and alternatives
+    validations:
+      required: true

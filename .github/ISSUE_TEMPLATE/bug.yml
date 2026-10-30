@@ -1,0 +1,26 @@
+name: Bug report
+description: Report a reproducible problem. Support is best effort.
+body:
+  - type: markdown
+    attributes:
+      value: Use synthetic examples. Do not upload private spreadsheets, credentials, or unlicensed fonts. Report security vulnerabilities privately using the Security tab.
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Include a minimal example using data you can share publicly.
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Expected and actual behavior
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Browser, operating system, and app URL or commit
+      placeholder: Firefox 145, Windows 11, app URL or commit SHA
+    validations:
+      required: true
