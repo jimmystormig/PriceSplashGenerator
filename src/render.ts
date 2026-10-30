@@ -10,7 +10,7 @@ export function priceLayout(amount:number,initialSize:number,maxWidth:number,max
 
 export function render(canvas:HTMLCanvasElement,p:Product,s:Settings):string[]{
  canvas.width=s.size;canvas.height=s.size; const ctx=canvas.getContext('2d')!;ctx.scale(s.size/1000,s.size/1000);ctx.clearRect(0,0,1000,1000);
- if(s.background==='white'){ctx.fillStyle='#fff';ctx.fillRect(0,0,1000,1000);}
+ if(s.background==='white'||s.background==='black'){ctx.fillStyle=s.background==='black'?'#000':'#fff';ctx.fillRect(0,0,1000,1000);}
  const family=s.font==='default'?'Arial, sans-serif':'"SplashCustom", Arial, sans-serif';const weight=s.font==='default'?700:s.fontWeight;const warnings:string[]=[];
  function text(value:string,x:number,y:number,size:number,width:number,bold=true,color=s.textColor,min=22){ctx.textAlign='center';ctx.textBaseline='middle';let actual=size;ctx.font=`${s.font==='default'?(bold?700:400):weight} ${actual}px ${family}`;while(ctx.measureText(value).width>width&&actual>min){actual--;ctx.font=`${s.font==='default'?(bold?700:400):weight} ${actual}px ${family}`;}if(ctx.measureText(value).width>width)warnings.push('Texten är för lång för en läslig bild. Korta texten eller välj ett annat typsnitt.');ctx.fillStyle=color;ctx.fillText(value,x,y);return actual;}
  // Keep the splash group slightly smaller and further right than the product text.
