@@ -24,6 +24,9 @@ test('renderer uppercases Swedish names without changing the product and uses co
  assert.ok(drawn.some(d=>d.text==='29,95'));assert.ok(!drawn.some(d=>d.text.includes(p.ean)));
  drawn.length=0;render(canvas,{...p,price:'45,20',saving:'30'},defaults);
  assert.ok(drawn.some(d=>d.text==='30,00'));assert.ok(drawn.some(d=>d.text==='45'));assert.ok(drawn.some(d=>d.text==='20'));assert.ok(!drawn.some(d=>d.text==='45,20'));
+ drawn.length=0;assert.deepEqual(render(canvas,{...p,suffix:'',lowest:'40'},defaults),[]);
+ assert.ok(drawn.some(d=>d.text==='45:-'));assert.ok(!drawn.some(d=>d.text.startsWith('/')||d.text.includes('/frp')||d.text.includes('/st')));
+ assert.ok(drawn.some(d=>d.text==='30-dgr-pris. 40,00 / pant tillkommer'));
 });
 
 test('price ink bounds centre öre and leave space for the multiprice label and unit',()=>{
