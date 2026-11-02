@@ -21,7 +21,7 @@ export async function createTemplate():Promise<ArrayBuffer>{
   ['Multipris antal: t.ex. 2. Pris: totalpriset för erbjudandet, t.ex. 99.'],
   ['Ordinarie pris och Varans vikt avser en vara.'],
   ['Viktenhet: g, hg, kg, ml, cl, dl, liter eller st.'],
-  ['Enhet: välj frp, st, kg eller hg i rullistan (visas efter priset). Standard är frp.'],
+  ['Enhet: välj frp, st, kg eller hg i rullistan (visas efter priset), eller lämna tomt för ingen enhet. Standard är frp.'],
   ['Jämförpris och Besparing: lämna tomt för automatisk beräkning.'],
   ['Jämförprisenhet: kg eller liter (vid manuellt jämförpris).'],
   ['Maxköp: heltal, visas som Max 2 köp.'],
@@ -35,7 +35,7 @@ export async function createTemplate():Promise<ArrayBuffer>{
  const zip=await JSZip.loadAsync(XLSX.write(workbook,{type:'array',bookType:'xlsx'}));
  const path='xl/worksheets/sheet1.xml';
  const xml=await zip.file(path)!.async('string');
- const rules=[['F',priceUnits],['O',['ja','nej']]] as const;
+ const rules=[['F',priceUnits.filter(Boolean)],['O',['ja','nej']]] as const;
  const validations=rules.map(([column,options])=>`<dataValidation type="list" allowBlank="1" showErrorMessage="1" errorStyle="stop" sqref="${column}2:${column}5001"><formula1>"${options.join(',')}"</formula1></dataValidation>`).join('');
  zip.file(path,xml.replace('</sheetData>',`</sheetData><dataValidations count="2">${validations}</dataValidations>`));
  return zip.generateAsync({type:'arraybuffer',compression:'DEFLATE'});

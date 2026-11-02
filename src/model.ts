@@ -4,7 +4,7 @@ export interface Product {
 }
 export interface Settings {burst:string;priceColor:string;textColor:string;background:string;size:number;font:string;fontWeight:number}
 export interface StoredFont {name:string;data:ArrayBuffer;weight?:number}
-export const priceUnits=['frp','st','kg','hg'];
+export const priceUnits=['','frp','st','kg','hg'];
 export const defaults:Settings={burst:'#ffe600',priceColor:'#e60012',textColor:'#101010',background:'transparent',size:1000,font:'default',fontWeight:700};
 export const blank=():Product=>({id:crypto.randomUUID(),ean:'',name:'',supplier:'',deposit:false,weight:'',unit:'g',price:'',regular:'',comparison:'',comparisonUnit:'kg',suffix:'frp',multi:'',lowest:'',limit:'',saving:''});
 export const example=():Product=>({...blank(),name:'Janssons frestelse',weight:'450',price:'45',regular:'74,95'});
@@ -22,7 +22,7 @@ export function calculate(p:Product){
 export function validate(p:Product):string[]{
  const errors:string[]=[];if(p.depositError)errors.push(p.depositError);if(!p.name.trim())errors.push('Varans namn saknas.');if(number(p.price)===null)errors.push('Pris måste vara ett positivt tal eller noll.');
  for(const [key,label] of [['weight','Vikt/volym'],['regular','Ordinarie pris'],['comparison','Jämförpris'],['lowest','30-dagarspris'],['saving','Besparing']] as const)if(p[key].trim()&&number(p[key])===null)errors.push(`${label} måste vara ett positivt tal eller noll.`);
- if(!priceUnits.includes(p.suffix))errors.push('Enhet efter priset måste vara frp, st, kg eller hg.');
+ if(!priceUnits.includes(p.suffix))errors.push('Enhet efter priset måste vara tom eller frp, st, kg eller hg.');
  if(!['g','hg','kg','ml','cl','dl','liter','st'].includes(p.unit))errors.push('Enhet måste vara g, hg, kg, ml, cl, dl, liter eller st.');
  if(p.comparison.trim()&&!['kg','liter'].includes(p.comparisonUnit))errors.push('Jämförprisenhet måste vara kg eller liter.');
  if(p.weight.trim()&&number(p.weight)===0)errors.push('Vikt/volym måste vara större än noll.');
@@ -43,11 +43,11 @@ export function parseDeposit(raw:unknown):{value:boolean;error?:string}{
 export function hydrateProduct({maker:_maker,...saved}:Partial<Product>&{maker?:unknown}):Product{return {...blank(),...saved,ean:saved.ean??'',supplier:saved.supplier??'',deposit:saved.deposit??false};}
 export function priceParts(amount:number){const cents=Math.round((amount+Number.EPSILON)*100);return {kronor:String(Math.floor(cents/100)),ore:cents%100?String(cents%100).padStart(2,'0'):null};}
 export function detailLines(p:Product):string[]{
- const c=calculate(p);const suffix=p.suffix.trim().replace(/^\//,'')||'st';
+ const c=calculate(p);const unit=p.suffix.trim().replace(/^\//,'');const suffix=unit?`/${unit}`:'';
  return [
  [p.supplier.trim(),p.weight.trim()?`${p.weight.trim()} ${p.unit}`:''].filter(Boolean).join(' '),
- [p.regular.trim()?`Ord. ${decimal(number(p.regular)??0)}/${suffix}`:'',c.comparison!==null?`Jfr. ${decimal(c.comparison)}/${c.comparisonUnit}`:''].filter(Boolean).join(' '),
- [p.lowest.trim()?`30-dgr-pris. ${decimal(number(p.lowest)??0)}/${suffix}`:'',p.deposit?'pant tillkommer':''].filter(Boolean).join(' / '),
+ [p.regular.trim()?`Ord. ${decimal(number(p.regular)??0)}${suffix}`:'',c.comparison!==null?`Jfr. ${decimal(c.comparison)}/${c.comparisonUnit}`:''].filter(Boolean).join(' '),
+ [p.lowest.trim()?`30-dgr-pris. ${decimal(number(p.lowest)??0)}${suffix}`:'',p.deposit?'pant tillkommer':''].filter(Boolean).join(' / '),
  p.limit.trim()?`Max ${p.limit.trim()} köp`:''
  ].filter(Boolean);
 }

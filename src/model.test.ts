@@ -32,10 +32,19 @@ test('Excel headers map weight and price units independently',async()=>{
  const {mapColumns}=await import('./model');
  const [p]=rowsToProducts([['Kaffe','45','g','st']],mapColumns(['Varans namn','Pris','Viktenhet','Enhet']));
  assert.equal(p.unit,'g');assert.equal(p.suffix,'st');assert.deepEqual(validate(p),[]);
- for(const suffix of ['frp','st','kg','hg'])assert.deepEqual(validate({...example(),suffix}),[]);
+ for(const suffix of ['','frp','st','kg','hg'])assert.deepEqual(validate({...example(),suffix}),[]);
  assert.match(validate({...example(),suffix:'fel'}).join(),/Enhet efter priset/);
  const old=mapColumns(['Enhet','Prissuffix','30-dagarspris']);
  assert.equal(old.unit,-1);assert.equal(old.suffix,0);assert.equal(old.lowest,-1);
+});
+
+test('empty price unit survives import and storage and omits unit separators in details',async()=>{
+ const {detailLines,hydrateProduct,mapColumns}=await import('./model');
+ const [p]=rowsToProducts([['Kaffe','20','']],mapColumns(['Varans namn','Pris','Enhet']));
+ assert.equal(p.suffix,'');assert.deepEqual(validate(p),[]);
+ assert.equal(hydrateProduct(structuredClone(p)).suffix,'');
+ assert.deepEqual(detailLines({...p,regular:'45',lowest:'40',comparison:'40'}),['Ord. 45,00 Jfr. 40,00/kg','30-dgr-pris. 40,00']);
+ assert.equal(rowsToProducts([['Kaffe','20']],{name:0,price:1})[0].suffix,'frp');
 });
 
 test('EAN survives import, stored-data hydration and duplication as text',async()=>{
